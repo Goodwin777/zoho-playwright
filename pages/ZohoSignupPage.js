@@ -48,7 +48,20 @@ class ZohoSignupPage {
 
   async submit() {
     await this.getStartedButton.click();
-    await this.page.waitForLoadState("networkidle");
+
+    // "networkidle" is flaky for Zoho due to long-polling/analytics in CI.
+    // We instead wait for a meaningful post-submit state.
+    const captcha = this.page.locator('input[name="captcha"]');
+    const otp = this.page.getByRole("textbox", { name: /Enter OTP/i });
+
+    await Promise.race([
+      captcha.first().waitFor({ state: "visible", timeout: 15_000 }).catch(() => null),
+      otp.waitFor({ state: "visible", timeout: 15_000 }).catch(() => null),
+      this.page
+        .waitForURL(/.*(captcha|otp|verify|signin|crm).*/i, { timeout: 15_000 })
+        .catch(() => null),
+      this.page.waitForLoadState("domcontentloaded", { timeout: 15_000 }).catch(() => null),
+    ]);
   }
 
   async getSecurityValidationState() {
