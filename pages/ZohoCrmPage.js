@@ -2,6 +2,7 @@ class ZohoCrmPage {
   constructor(page) {
     this.page = page;
 
+    this.topNav = page.locator("header, nav").first();
     this.pricingLink = page.getByRole("link", { name: /Pricing/i }).first();
 
     this.demoLink = page
@@ -16,6 +17,11 @@ class ZohoCrmPage {
 
     this.resourcesLink = page
       .getByRole("link", { name: /Resources|Blog/i })
+      .first();
+
+    // Trial / signup CTAs are often "Start free trial" or "Get started"
+    this.startFreeTrialLink = page
+      .getByRole("link", { name: /Start\s+free\s+trial|Free\s+trial|Get\s+started/i })
       .first();
   }
 
@@ -48,6 +54,40 @@ class ZohoCrmPage {
 
   async openResourcesPage() {
     await this.resourcesLink.click();
+  }
+
+  async openTrialSignup() {
+    const ctaCount = await this.startFreeTrialLink.count();
+    if (ctaCount > 0) {
+      await this.startFreeTrialLink.click();
+      return true;
+    }
+
+    // Fallback: direct CRM signup page (trial entry)
+    await this.page.goto("/crm/signup.html");
+    return true;
+  }
+
+  async getTabBarState() {
+    const pricingVisible = await this.pricingLink.isVisible().catch(() => false);
+    const featuresVisible = await this.featuresLink
+      .isVisible()
+      .catch(() => false);
+    const resourcesVisible = await this.resourcesLink
+      .isVisible()
+      .catch(() => false);
+    const demoVisible = await this.demoLink.isVisible().catch(() => false);
+    const customersVisible = await this.customersLink
+      .isVisible()
+      .catch(() => false);
+
+    return {
+      pricingVisible,
+      featuresVisible,
+      resourcesVisible,
+      demoVisible,
+      customersVisible,
+    };
   }
 }
 

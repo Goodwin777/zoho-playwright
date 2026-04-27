@@ -11,6 +11,9 @@ test-results/
 playwright-report/
 blob-report/
 
+# local auth state
+.auth/storageState.json
+
 # traces, videos, screenshots
 *.zip
 *.webm

@@ -11,6 +11,25 @@ test.describe("Zoho CRM public pages", () => {
     await expect(page).toHaveTitle(/CRM|Zoho/i);
   });
 
+  test("should show CRM tab bar navigation", async ({ page }) => {
+    const crmPage = new ZohoCrmPage(page);
+
+    await crmPage.open();
+
+    await expect(crmPage.featuresLink).toBeVisible();
+    await expect(crmPage.pricingLink).toBeVisible();
+    await expect(crmPage.resourcesLink).toBeVisible();
+
+    const tabs = await crmPage.getTabBarState();
+    if (!tabs.customersVisible) {
+      test.info().annotations.push({
+        type: "R&D result",
+        description:
+          "Customers tab is not visible (Zoho UI can be dynamic / geo / AB-test).",
+      });
+    }
+  });
+
   test("should navigate from CRM page to pricing page", async ({ page }) => {
     const crmPage = new ZohoCrmPage(page);
 
