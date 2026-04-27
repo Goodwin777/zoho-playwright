@@ -6,7 +6,8 @@
   "scripts": {
     "test": "playwright test",
     "test:setup": "playwright test --project=setup --headed",
-    "test:crm": "playwright test --project=chromium"
+    "test:crm": "playwright test --project=chromium",
+    "test:auth": "playwright test --project=chromium-auth"
   },
   "keywords": [],
   "author": "",
