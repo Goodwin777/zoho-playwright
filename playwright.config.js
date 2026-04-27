@@ -12,9 +12,23 @@ module.exports = defineConfig({
     video: "retain-on-failure",
   },
   projects: [
+    // Run this first to generate .auth/storageState.json.
+    // Use: npx playwright test --project=setup --headed
+    {
+      name: "setup",
+      testMatch: /.*\.setup\.js/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: undefined,
+      },
+    },
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: ".auth/storageState.json",
+      },
     },
   ],
 });

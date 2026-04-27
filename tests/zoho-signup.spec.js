@@ -1,49 +1,34 @@
 const { test, expect } = require("@playwright/test");
+const { ZohoSignupPage } = require("../pages/ZohoSignupPage");
+const {
+  generateZohoUser,
+  resolveZohoUserFromEnv,
+} = require("../utils/zohoUserFactory");
 
 test.describe("Zoho CRM signup flow", () => {
   test("should fill signup form and stop on captcha or OTP step", async ({
     page,
   }) => {
-    await page.goto("/crm/signup.html");
+    const signupPage = new ZohoSignupPage(page);
 
-    await page
-      .getByRole("textbox", { name: "Enter your name" })
-      .fill(process.env.ZOHO_NAME || "RND Test User");
+    await signupPage.open();
 
-    await page
-      .getByRole("textbox", { name: "Enter your email" })
-      .fill(process.env.ZOHO_EMAIL || "");
-
-    await page
-      .getByRole("textbox", { name: /Enter password/i })
-      .fill(process.env.ZOHO_PASSWORD || "");
-
-    await page
-      .getByRole("textbox", { name: "Enter your phone number" })
-      .fill(process.env.ZOHO_PHONE || "");
-
-    await page.getByText("I agree to the Terms of").click();
-
-    await page.getByRole("button", { name: "Get started" }).click();
-
-    await page.waitForLoadState("networkidle");
-
-    const captcha = page.locator('input[name="captcha"]');
-    const otp = page.getByRole("textbox", { name: /Enter OTP/i });
-
-    const captchaExists = await captcha.count();
-    const captchaVisible =
-      captchaExists > 0 && (await captcha.first().isVisible());
-    const otpVisible = await otp.isVisible().catch(() => false);
-
-    console.log("R&D RESULT:", {
-      captchaExists,
-      captchaVisible,
-      otpVisible,
-      currentUrl: page.url(),
+    const generated = generateZohoUser({
+      prefix: "rnd.user",
+      displayPrefix: "RND User",
     });
+    const user = resolveZohoUserFromEnv(generated);
 
-    expect(captchaExists > 0 || otpVisible).toBeTruthy();
+    await signupPage.fillSignupForm(user);
+    await signupPage.assertFilled(user);
+
+    await signupPage.acceptTerms();
+    await signupPage.submit();
+
+    const securityState = await signupPage.getSecurityValidationState();
+    console.log("R&D RESULT:", securityState);
+
+    expect(securityState.captchaExists > 0 || securityState.otpVisible).toBeTruthy();
 
     test.info().annotations.push({
       type: "R&D result",

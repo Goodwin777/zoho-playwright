@@ -1,4 +1,4 @@
-class ZohoSignupPage {
+class ZohoTrialSignupPage {
   constructor(page) {
     this.page = page;
 
@@ -13,11 +13,7 @@ class ZohoSignupPage {
     this.getStartedButton = page.getByRole("button", { name: "Get started" });
   }
 
-  async open() {
-    await this.page.goto("/crm/signup.html");
-  }
-
-  async fillSignupForm({ name, email, password, phone }) {
+  async fill({ name, email, password, phone }) {
     await this.nameInput.fill(name);
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
@@ -30,6 +26,7 @@ class ZohoSignupPage {
     await this.passwordInput.waitFor({ state: "visible" });
     await this.phoneInput.waitFor({ state: "visible" });
 
+    // Use inputValue to avoid any masking differences
     const [n, e, p, ph] = await Promise.all([
       this.nameInput.inputValue(),
       this.emailInput.inputValue(),
@@ -38,7 +35,7 @@ class ZohoSignupPage {
     ]);
 
     if (n !== name || e !== email || p !== password || ph !== phone) {
-      throw new Error("Signup form values do not match expected input.");
+      throw new Error("Trial signup form values do not match expected input.");
     }
   }
 
@@ -69,4 +66,5 @@ class ZohoSignupPage {
   }
 }
 
-module.exports = { ZohoSignupPage };
+module.exports = { ZohoTrialSignupPage };
+
